@@ -297,8 +297,8 @@
                     e.preventDefault()
                     if (SVFlag) return
                     var touches = e.type == "mousemove" ? e : e.touches[0]
-                    this.SVx = Math.min(Math.max(SVpreX + touches.clientX - SVx - SVfirstX, 0), this.size.width - 0.001)
-                    this.SVy = Math.min(Math.max(SVpreY + touches.clientY - SVy - SVfirstY, 0), this.size.height - 0.001)
+                    this.SVx = Math.min(Math.max(SVpreX + touches.clientX - SVx - SVfirstX, 0), this.size.width)
+                    this.SVy = Math.min(Math.max(SVpreY + touches.clientY - SVy - SVfirstY, 0), this.size.height)
 
                     SVupdata.call(this)
                 }
@@ -308,8 +308,8 @@
                     if (SVFlag) return
                     SVFlag = true
                     var touches = e.type == "mouseup" ? e : e.changedTouches[0]
-                    this.SVx = Math.min(Math.max(SVpreX + touches.clientX - SVx - SVfirstX, 0), this.size.width - 0.001)
-                    this.SVy = Math.min(Math.max(SVpreY + touches.clientY - SVy - SVfirstY, 0), this.size.height - 0.001)
+                    this.SVx = Math.min(Math.max(SVpreX + touches.clientX - SVx - SVfirstX, 0), this.size.width)
+                    this.SVy = Math.min(Math.max(SVpreY + touches.clientY - SVy - SVfirstY, 0), this.size.height)
 
                     SVupdata.call(this)
                 }
