@@ -1,0 +1,152 @@
+<script>
+    // 1. 用闭包的方式实现（复杂，更安全，隐蔽性强）
+    var cache = (function () {
+        var map = {}
+        var limits = {}
+
+        var orginMethod = {
+            /**
+             * 添加缓存，带过期时间，默认永久
+             * @param {string} type - 缓存类型
+             * @param {string} key - 缓存键
+             * @param {any} data - 缓存数据
+             * @param {number} expireTime - 过期时间，单位毫秒，默认为-1表示永久存活
+             * @returns {any} - 返回缓存数据
+             */
+            // set: function (type, key, data, expireTime) {
+            // 	expireTime = expireTime === void 0? -1 : expireTime
+            // 	map[type] = map[type] || {}
+            // 	map[type][key] = { data: data, expireTime: expireTime === -1 ? -1 : Date.now() + expireTime }
+            // 	return data
+            // },
+            set: function (type, key, data, expireTime = -1) {
+                map[type] = map[type] || {}
+                if (Object.keys(map[type]).length >= limits[type]) {
+                    // 超出存储上限，删除最老的数据
+                    var oldestTimestamp = Infinity
+                    var oldestKey = null
+                    for (var k in map[type]) {
+                        if (map[type][k].timestamp < oldestTimestamp) {
+                            oldestTimestamp = map[type][k].timestamp
+                            oldestKey = k
+                        }
+                    }
+                    if (oldestKey) {
+                        delete map[type][oldestKey]
+                    }
+                }
+                map[type][key] = { data: data, expireTime: expireTime === -1 ? -1 : Date.now() + expireTime, timestamp: Date.now() }
+                return data
+            },
+
+            // 获取缓存
+            get: function (type, key) {
+                map[type] = map[type] || {}
+                var item = map[type][key]
+                if (item && (item.expireTime === -1 || Date.now() < item.expireTime)) {
+                    return item.data
+                } else {
+                    delete map[type][key]
+                    return void 0
+                }
+            },
+            // 删除缓存
+            delete: function (type, key) {
+                return delete map[type][key]
+            },
+            // // 获取某个类型的缓存
+            // getMap: function (type) {
+            // 	return (map[type] = map[type] || {})
+            // },
+            // // 获取所有
+            // getAll: function () {
+            // 	return map
+            // },
+        }
+
+        var method = {}
+        for (var key in orginMethod) {
+            method[key] = orginMethod[key]
+        }
+
+        // 创建缓存类型工厂
+        method.factory = function (type) {
+            var newMethod = {}
+            for (var key in orginMethod) {
+                ;(function (key) {
+                    newMethod[key] = function () {
+                        return orginMethod[key].apply(null, [type].concat(Array.prototype.slice.call(arguments)))
+                    }
+                })(key)
+            }
+            return newMethod
+        }
+
+        return method
+    })()
+
+
+    // 2. 用类的方式实现（更简单，可是会暴露内部的缓存内容）
+
+    function Cache(limit) {
+        this.map = {}
+        this.limit = limit || Infinity
+    }
+
+    Cache.prototype.get = function (key) {
+        var item = this.map[key]
+        if (item && (item.expireTime === -1 || Date.now() < item.expireTime)) {
+            return item.data
+        } else {
+            delete this.map[key]
+            return void 0
+        }
+    }
+
+    Cache.prototype.set = function (key, data, expireTime) {
+        expireTime = expireTime === void 0 ? -1 : expireTime
+        if (Object.keys(this.map).length >= this.limit) {
+            // 超出存储上限，删除最老的数据
+            var oldestTimestamp = Infinity
+            var oldestKey = null
+            for (var k in this.map) {
+                if (this.map[k].timestamp < oldestTimestamp) {
+                    oldestTimestamp = this.map[k].timestamp
+                    oldestKey = k
+                }
+            }
+            if (oldestKey) {
+                delete this.map[oldestKey]
+            }
+        }
+        this.map[key] = { data: data, expireTime: expireTime === -1 ? -1 : Date.now() + expireTime, timestamp: Date.now() }
+        return data
+    }
+
+    Cache.prototype.delete = function (key) {
+        return delete this.map[key]
+    }
+
+    // var dataCache = cache.factory("data", 1)
+
+    // var key = "name"
+    // var time = 3000
+    // dataCache.set(key, "he", time)
+    // console.log(dataCache.get(key))
+
+    // setTimeout(() => console.log(dataCache.get(key)), time)
+
+
+
+
+    var dataCache = new Cache(1)
+
+    var key = "name"
+    var time = 3000
+    dataCache.set(key, "he", time)
+    console.log(dataCache.get(key))
+
+    setTimeout(() => console.log(dataCache.get(key)), time)
+
+
+</script>

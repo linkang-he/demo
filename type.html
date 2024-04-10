@@ -1,0 +1,74 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Document</title>
+    </head>
+    <body>
+        <script>
+            // 判断是移动端
+            function isMobile() {
+                return /Android|iPhone|iPad|iPod|Windows Phone/i.test(navigator.userAgent)
+            }
+
+            // 判断类型
+            function is(val, type) {
+                return Object.prototype.toString.call(val) === "[object " + type + "]"
+            }
+
+            // 判断是数字
+            function isNumber(val) {
+                return is(val, "Number")
+            }
+
+            // 判断是字符串
+            function isString(val) {
+                return is(val, "String")
+            }
+
+            // 判断是函数
+            function isFunction(val) {
+                return is(val, "Function")
+            }
+
+            // 是Object
+            function isObject(val) {
+                return is(val, "Object")
+            }
+
+            // 判断是数组
+            function isArray(val) {
+                return is(val, "Array")
+            }
+
+            // 判断两个对象是否相等
+            function isObjectEqual(obj1, obj2) {
+                // 判断两个对象的类型是否相同
+                if (typeof obj1 !== typeof obj2) {
+                    return false
+                }
+                // 检查对象的属性数量是否相等
+                if (Object.keys(obj1).length !== Object.keys(obj2).length) {
+                    return false
+                }
+                // 逐个比较对象的属性值
+                for (var prop in obj1) {
+                    if (obj1.hasOwnProperty(prop) !== obj2.hasOwnProperty(prop)) {
+                        return false
+                    }
+                    if (typeof obj1[prop] === "object") {
+                        if (!isObjectEqual(obj1[prop], obj2[prop])) {
+                            return false
+                        }
+                    } else {
+                        if (obj1[prop] !== obj2[prop]) {
+                            return false
+                        }
+                    }
+                }
+                return true
+            }
+        </script>
+    </body>
+</html>

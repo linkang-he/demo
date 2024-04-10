@@ -1,0 +1,244 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Document</title>
+    </head>
+    <body>
+        <script>
+            // 删除符合条件的的第一个数组元素
+            function removeFirstMatch(arr, condition) {
+                for (var i = 0; i < arr.length; i++) {
+                    if (condition(arr[i])) {
+                        arr.splice(i, 1)
+                        return
+                    }
+                }
+            }
+
+            // 微任务
+            function nextTick(callback) {
+                if (typeof Promise !== void 0) {
+                    return Promise.resolve().then(callback)
+                } else if (typeof MutationObserver !== void 0) {
+                    var observer = new MutationObserver(callback)
+                    var textNode = document.createTextNode("1")
+                    observer.observe(textNode, {
+                        characterData: true,
+                    })
+                    textNode.data = "2"
+                } else if (typeof MessageChannel !== void 0) {
+                    var channel = new MessageChannel()
+                    channel.port1.onmessage = callback
+                    channel.port2.postMessage("")
+                } else {
+                    setTimeout(callback, 0)
+                }
+            }
+
+            // 获取扩展名
+            function getExtension(url) {
+                return url.split(".").pop().split("?").shift().toLocaleLowerCase()
+            }
+
+            // 生成唯一hash
+            function getUniqueHash() {
+                return new Date().getTime().toString(36) + Math.random().toString(36).substr(-8)
+            }
+
+            // 深拷贝对象
+            function deepClone(obj) {
+                if (obj === null || typeof obj !== "object") return obj
+
+                var clone = Array.isArray(obj) ? [] : {}
+
+                for (var key in obj) {
+                    if (obj.hasOwnProperty(key)) {
+                        clone[key] = deepClone(obj[key])
+                    }
+                }
+
+                return clone
+            }
+
+            // 替换字符串匹配到的最后一个字符串并返回
+            function replaceLast(str, find, replace) {
+                var lastIndex = str.lastIndexOf(find)
+                if (lastIndex === -1) {
+                    return str
+                    // 如果没有找到匹配的字符串，则直接返回原始字符串
+                }
+                return str.substring(0, lastIndex) + str.substring(lastIndex).replace(find, replace)
+            }
+
+            // 确保传入的 value 值介于 min 和 max 之间，如果小于 min，则返回 min；如果大于 max，则返回 max。
+            function limitValue(value, min, max) {
+                return Math.min(Math.max(value, min), max)
+            }
+
+            // 找出数组中最相近的数
+            function differ(val, arr) {
+                arr.sort(function (a, b) {
+                    return Math.abs(a - val) - Math.abs(b - val)
+                })
+                return arr[0]
+            }
+
+            //阻止冒泡事件
+            function stopEvent(event) {
+                //取消事件冒泡
+                var e = arguments.callee.caller.arguments[0] || event
+                //若省略此句，下面的e改为event，IE运行可以，但是其他浏览器就不兼容
+                if (e && e.stopPropagation) {
+                    // this code is for Mozilla and Opera
+                    e.stopPropagation()
+                } else if (window.event) {
+                    // this code is for IE
+                    window.event.cancelBubble = true
+                }
+            }
+
+            /**
+             * 注册元素外的事件
+             * @param {Object} opts - 选项
+             * @param {document} Object.target 祖宗dom元素 默认：document
+             * @param {document} Object.docm 目标dom元素
+             * @param {string} Object.eventName 事件名
+             * @param {function} Object.handler 回调
+             * @return {function} 解绑回调
+             */
+            function registerAwayEvent(opts) {
+                opts = opts || {}
+                opts.docm = opts.docm || document
+                opts.target = opts.target || document.body
+                opts.handler = opts.handler || function () {}
+                opts.eventName = opts.eventName || "click"
+
+                function handler(event) {
+                    !opts.target.contains(event.target) && opts.handler()
+                }
+
+                opts.docm.addEventListener(opts.eventName, handler)
+
+                return function unregisterAwayEvent() {
+                    opts.docm.removeEventListener(opts.eventName, handler)
+                }
+            }
+
+            /**
+             * 防抖函数 控制函数执行频率
+             * @param {function} fn - 实际执行函数
+             * @param {number} delay - delay毫秒内只执行一次func
+             * @param {boolean} delay - 是否第一次就触发
+             * @returns {function} 返回一个闭包
+             */
+            function debounce(fn, delay, immediate) {
+                var timer = null
+                return function () {
+                    var args = arguments
+                    if (immediate && !timer) {
+                        fn.call(this, args)
+                    }
+                    if (timer) {
+                        clearTimeout(timer)
+                    }
+                    timer = setTimeout(function () {
+                        fn.call(this, args)
+                    }, delay)
+                }
+            }
+
+            /**
+             * 节流函数 一定时间内只执行一次
+             * @param {function} fn - 实际执行函数
+             * @param {number} delay - delay毫秒内只执行一次func
+             * @param {boolean} delay - 是否第一次就触发
+             * @returns {function} 返回一个闭包
+             */
+            function throttle(fn, delay, immediate) {
+                var prevTime = Date.now()
+                return function () {
+                    if (immediate && !prevTime) {
+                        fn.apply(this, arguments)
+                    }
+                    if (Date.now() - prevTime > delay) {
+                        fn.apply(this, arguments)
+                        prevTime = Date.now()
+                    }
+                }
+            }
+
+            // 拦截数据相应对象方法
+            function observe(obj, fn) {
+                if (typeof obj !== "object" || obj === null) return
+
+                var objKey = Object.keys(obj)
+                for (var i = 0; i < objKey.length; i++) {
+                    defineReactive(obj, objKey[i], obj[objKey[i]], fn)
+                }
+            }
+
+            function defineReactive(obj, key, val, fn) {
+                observe(val)
+
+                Object.defineProperty(obj, key, {
+                    get: function () {
+                        return val
+                    },
+                    set: function (newValue) {
+                        if (newValue !== val) {
+                            observe(newValue)
+                            var oldValue = val
+                            val = newValue
+                            fn(newValue, oldValue)
+                        }
+                    },
+                })
+            }
+
+            /**
+             * 限制promise并发
+             * @param {array} tasks - 需要传给callback的参数任务
+             * @param {function} callback - 接收一个task、index，返回promise
+             * @param {number} limt - 同一时间内最多并发limt个
+             * @param {boolean} errstop - 发生错误是否停止整个函数执行返回错误promise
+             * @returns {promise<array>} 返回promise
+             */
+            function runTasks(tasks, callback, limt = 100, errstop = false) {
+                return new Promise((resolve, reject) => {
+                    const results = []
+                    let cursor = 0
+                    let count = 0
+                    let len = tasks.length
+                    results.length = len
+
+                    const taskFn = () => {
+                        const index = cursor++
+                        if (cursor > len) return
+
+                        callback(tasks[index], index)
+                            .then((res) => {
+                                results[index] = res
+                                if (++count >= len) return resolve(results)
+                                taskFn()
+                            })
+                            .catch((err) => {
+                                results[index] = err
+                                if (errstop && len) {
+                                    len = 0
+                                    return reject(err)
+                                }
+                                if (++count >= len) return resolve(results)
+                                taskFn()
+                            })
+                    }
+
+                    for (let i = 0, l = Math.min(limt, len); i < l; i++) {
+                        taskFn()
+                    }
+                })
+            }
+        </script>
+    </body>
+</html>
